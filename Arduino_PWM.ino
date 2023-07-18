@@ -1,3 +1,8 @@
+#include <FastLED.h>
+
+#define NUM_LEDS 3
+#define DATA_PIN 6
+
 static int order[4] = {0, 0, 0 };
 int pwmPins[] = { 10, 9, 5 };
 char inChar;
@@ -8,11 +13,15 @@ char argTr[5];
 int flag = 0;
 byte incommingOrderFlag = 0;
 
+CRGB leds[NUM_LEDS];
+
 void setup() {
   pinMode(9, OUTPUT);
   pinMode(5, OUTPUT);
   pinMode(6, OUTPUT);
   Serial.begin(115200);
+  FastLED.addLeds<WS2812,DATA_PIN,RGB>(leds,NUM_LEDS);
+  FastLED.setBrightness(84);
   setTimers();
   sei();
 }
@@ -70,16 +79,16 @@ void loop() {
     order[2] = -1;
   }
 
-  for (int a = 0; a < 255;a++){
-    analogWrite(10,a);
-    delay(20);
-    //Serial.println(a);
-  }
-  for (int a = 255; a >0; a--){
-    analogWrite(10,a);
-    delay(20);
-    //Serial.println(a);
-  }
+//  for (int a = 0; a < 255;a++){
+//    analogWrite(10,a);
+//    delay(20);
+//    //Serial.println(a);
+//  }
+//  for (int a = 255; a >0; a--){
+//    analogWrite(10,a);
+//    delay(20);
+//    //Serial.println(a);
+//  }
 }
 
 int pwmPin(int k) {
@@ -103,9 +112,10 @@ void applyChanges() {
 //  Serial.print("order[2] = ");
 //  Serial.print(order[2]);
 //  Serial.println("");
-  for (byte i = 0; i < sizeof(order) - 1; i++) {
+  for (byte i = 0; i < 3; i++) {
     if (order[i] >= 0 && order[i] <= 255){
       analogWrite(pwmPins[i],order[i]);
+      changeColor(i, order[i]);
     }
   }  
 }
@@ -124,4 +134,21 @@ void setTimers(){
   TCCR3A |= (1 << WGM12) | (1 << CS12);
   TCCR1A |= (1 << WGM10);
   TCCR1B |= (1 << WGM12) | (1 << CS12);
+}
+
+void changeColor(int ledNum, int ledVal){
+  switch (ledNum) {
+  case 0:
+    leds[ledNum] = CHSV( ledVal, 0, 0);
+    break;
+  case 1:
+    leds[ledNum] = CHSV( 0, ledVal, 0); 
+    break;
+  case 2:
+    leds[ledNum] = CHSV( 0, 0, ledVal);
+   break;
+  default:
+    break;
+  }
+  FastLED.show();
 }
